@@ -88,4 +88,8 @@ public class InvoiceService {
             observer.onInvoiceChanged(invoice);
         }
     }
+
+    public List<Invoice> getInvoicesByDescendingPrix() {
+        return invoiceRepo.findAllByOrderByPrixDesc();
+    }
 }

@@ -70,4 +70,11 @@ public class InvoiceController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/by-price-desc")
+    @Operation(summary = "Lister les factures par prix décroissant")
+    public ResponseEntity<List<Invoice>> getInvoicesByPrixDesc() {
+        List<Invoice> invoices = service.getInvoicesByDescendingPrix();
+        return ResponseEntity.ok(invoices);
+    }
 }
