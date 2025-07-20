@@ -1,40 +1,34 @@
 package com.example.parc_sales;
 
-import com.example.parc_sales.controller.ClientController;
-import com.example.parc_sales.dto.ClientDto;
 import com.example.parc_sales.model.Client;
-import com.example.parc_sales.service.ClientService;
+import com.example.parc_sales.repository.ClientRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import org.mockito.Mockito;
-
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Collections;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+
+import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ClientController.class)
-public class ClientControllerTest {
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+class ClientControllerITTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private ClientService clientService;
+    @Autowired
+    private ClientRepository clientRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -42,74 +36,71 @@ public class ClientControllerTest {
     private Client client;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
+        clientRepository.deleteAll();
+
         client = new Client();
-        client.setId(1L);
-        client.setNom("Doe");
-        client.setPrenom("John");
-        client.setEmail("john.doe@example.com");
+        client.setNom("Test");
+        client.setPrenom("Client");
+        client.setEmail("client@test.com");
         client.setTelephone("0600000000");
+        client = clientRepository.save(client);
     }
 
     @Test
+    @Order(1)
     void testGetAllClients() throws Exception {
-        when(clientService.getAllClients()).thenReturn(Collections.singletonList(client));
-
         mockMvc.perform(get("/api/clients"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].nom", is("Doe")));
+                .andExpect(jsonPath("$[0].nom", is("Test")));
     }
 
     @Test
+    @Order(2)
     void testGetClientById() throws Exception {
-        when(clientService.getClientById(1L)).thenReturn(client);
-
-        mockMvc.perform(get("/api/clients/1"))
+        mockMvc.perform(get("/api/clients/" + client.getId()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email", is("john.doe@example.com")));
+                .andExpect(jsonPath("$.email", is("client@test.com")));
     }
 
     @Test
+    @Order(3)
     void testCreateClient() throws Exception {
-        ClientDto dto = new ClientDto();
-        dto.setNom("Doe");
-        dto.setPrenom("John");
-        dto.setEmail("john.doe@example.com");
-        dto.setTelephone("0600000000");
-
-        when(clientService.createClient(any(Client.class))).thenReturn(client);
+        Client newClient = new Client();
+        newClient.setNom("John");
+        newClient.setPrenom("Doe");
+        newClient.setEmail("john.doe@example.com");
+        newClient.setTelephone("0612345678");
 
         mockMvc.perform(post("/api/clients")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(newClient)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nom", is("Doe")));
+                .andExpect(jsonPath("$.nom", is("John")))
+                .andExpect(jsonPath("$.prenom", is("Doe")));
     }
 
     @Test
+    @Order(4)
     void testUpdateClient() throws Exception {
-        ClientDto dto = new ClientDto();
-        dto.setNom("Doe");
-        dto.setPrenom("Johnny");
-        dto.setEmail("johnny.doe@example.com");
-        dto.setTelephone("0600000001");
+        client.setNom("Updated");
+        client.setPrenom("Name");
 
-        client.setPrenom("Johnny");
-        client.setEmail("johnny.doe@example.com");
-
-        when(clientService.updateClient(Mockito.eq(1L), any(ClientDto.class))).thenReturn(client);
-
-        mockMvc.perform(put("/api/clients/1")
+        mockMvc.perform(put("/api/clients/" + client.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(client)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.prenom", is("Johnny")));
+                .andExpect(jsonPath("$.nom", is("Updated")));
     }
 
     @Test
+    @Order(5)
     void testDeleteClient() throws Exception {
-        mockMvc.perform(delete("/api/clients/1"))
+        mockMvc.perform(delete("/api/clients/" + client.getId()))
                 .andExpect(status().isNoContent());
+
+        Optional<Client> deleted = clientRepository.findById(client.getId());
+        Assertions.assertTrue(deleted.isEmpty());
     }
 }
