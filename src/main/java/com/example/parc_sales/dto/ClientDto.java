@@ -1,10 +1,26 @@
 package com.example.parc_sales.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 public class ClientDto {
 
+    @NotBlank(message = "Le nom est obligatoire")
+    @Size(max = 50, message = "Le nom ne peut pas dépasser 50 caractères")
     private String nom;
+
+    @NotBlank(message = "Le prénom est obligatoire")
+    @Size(max = 50, message = "Le prénom ne peut pas dépasser 50 caractères")
     private String prenom;
+
+    @NotBlank(message = "L'email est obligatoire")
+    @Email(message = "Format de l'email invalide")
     private String email;
+
+    @NotBlank(message = "Le numéro de téléphone est obligatoire")
+    @Pattern(regexp = "^[0-9]{10}$", message = "Le téléphone doit contenir 10 chiffres")
     private String telephone;
 
     public String getNom() {
