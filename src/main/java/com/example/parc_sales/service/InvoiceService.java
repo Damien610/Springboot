@@ -56,26 +56,33 @@ public class InvoiceService {
         return invoiceRepo.save(saved);
     }
 
-    public Invoice update(Long id, InvoiceDto dto){
+    public Invoice update(Long id, InvoiceDto dto) {
         Invoice invoice = invoiceRepo.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Client avec l'ID " + id + " non trouvé"));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture avec l'ID " + id + " non trouvée"));
+
         Vehicle vehicle = vehicleRepo.findById(dto.getVehicleId())
                 .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé"));
 
-        if (vehicle.getStatus() == Vehicle.Status.RESERVE || vehicle.getStatus() == Vehicle.Status.VENDU) {
-            throw new IllegalArgumentException("Le véhicule est déjà réservé ou vendu");
+        boolean sameClient = invoice.getClient().getId().equals(dto.getClientId());
+        boolean sameVehicle = invoice.getVehicle().getId().equals(dto.getVehicleId());
+        boolean statusIsPaid = Status.valueOf(dto.getStatus()) == Status.PAID;
+
+        if (!(sameClient && sameVehicle && statusIsPaid)) {
+            if (vehicle.getStatus() == Vehicle.Status.RESERVE || vehicle.getStatus() == Vehicle.Status.VENDU) {
+                throw new IllegalArgumentException("Le véhicule est déjà réservé ou vendu");
+            }
         }
 
         invoice.setPrix(dto.getPrix());
         invoice.setStatus(Status.valueOf(dto.getStatus()));
         invoice.setClient(clientRepo.findById(dto.getClientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Client non trouvé")));
-        invoice.setVehicle(vehicleRepo.findById(dto.getVehicleId())
-                .orElseThrow(() -> new ResourceNotFoundException("Véhicule non trouvé")));
-        invoice.setPrix(dto.getPrix());
+        invoice.setVehicle(vehicle); // vehicle déjà récupéré plus haut
+
         notifyObservers(invoice);
         return invoiceRepo.save(invoice);
     }
+
 
     public void delete(Long id) {
         Invoice invoice = invoiceRepo.findById(id)

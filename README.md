@@ -33,7 +33,7 @@ Ces statuts reflètent l’état réel du véhicule ou de la facture dans le pro
 #### 🔁 Transitions possibles :
 
 - `DISPONIBLE` → `RESERVE` : lorsqu’un client manifeste un intérêt sérieux.
-- `RESERVE` → `VENDU` : si la vente est confirmée via une **facture créée**.
+- `RESERVE` → `VENDU` : si la vente est confirmée via une **facture payé**.
 
 
 ---
@@ -58,7 +58,7 @@ Ces statuts reflètent l’état réel du véhicule ou de la facture dans le pro
 
 - Une facture de statut `PAID` entraîne automatiquement le passage du véhicule lié à `VENDU`.
 - Un véhicule `VENDU` ne peut être lié à **aucune autre facture**.
-- La suppression d'une facture ne remet pas le véhicule en `DISPONIBLE` (à gérer manuellement selon les besoins métier).
+- La suppression d'une facture ne remet pas le véhicule en `DISPONIBLE`.
 
 
 

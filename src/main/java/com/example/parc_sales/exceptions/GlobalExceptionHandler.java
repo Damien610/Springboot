@@ -46,7 +46,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGlobalException(Exception ex, WebRequest request) {
-        logger.error("Exception non gérée", ex); // <-- Important pour déboguer
+        logger.error("Exception non gérée", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Une erreur interne est survenue.");
     }
